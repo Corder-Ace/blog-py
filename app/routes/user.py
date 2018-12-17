@@ -14,10 +14,13 @@ def select_all_user():
 def register_user():
     reg_info = request.get_json()
     user = search(reg_info.get('username', None))
-    if user is None or user.username.strip == '':
+
+    if user is None or user.username.strip() == '':
         try:
             create_user(reg_info)
-        except Exception:
+        except Exception as Error:
+            if Error:
+                raise TypeError("创建用户失败：") from Error
             return json.dumps({
                 "status": 403,
                 "msg": '创建用户失败,请稍后再试!'

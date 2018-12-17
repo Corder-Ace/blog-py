@@ -9,11 +9,12 @@ class User(db.Model):
     username = db.Column(db.CHAR(64), unique=True, nullable=False)
     account = db.Column(db.CHAR(32), unique=True, nullable=False)
     password = db.Column(db.CHAR(32), nullable=False)
-    avatar = db.Column(db.CHAR())
-    email = db.Column(db.CHAR(), unique=True, nullable=False)
-    moment = db.Column(db.CHAR(), unique=True, nullable=False)
+    avatar = db.Column(db.CHAR(255))
+    email = db.Column(db.CHAR(255), unique=True, nullable=False)
+    moment = db.Column(db.CHAR(255), unique=True, nullable=False)
 
     def __init__(self, user):
+        print(user)
         self.username = user.get('username')
         self.account = user.get('account')
         self.password = user.get('password')
