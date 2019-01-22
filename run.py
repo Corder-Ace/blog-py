@@ -9,7 +9,7 @@ with app.app_context():
     db.create_all()
 
 # 路由注册
-app.register_blueprint(users, url_prefix="/api/user")
+app.register_blueprint(users, url_prefix="/api/v1/user")
 
 if __name__ == '__main__':
     app.run(host='localhost', port=4000)
