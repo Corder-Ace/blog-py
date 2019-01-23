@@ -1,7 +1,6 @@
 import json
 from flask import request, Blueprint
 from app.models.user import Users
-from app.db.user import toggle_user_status
 from app.auth.auths import Auth, identify
 users = Blueprint('users', __name__)
 
@@ -61,7 +60,9 @@ def add_user():
 @identify
 def frozen_user(user_id):
     try:
-        toggle_user_status(user_id)
+        user = Users.get(Users, user_id)
+        user.status = not user.status
+        Users.update(Users)
     except Exception as Error:
         if Error:
             return json.dumps({
