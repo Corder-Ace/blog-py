@@ -51,7 +51,16 @@ class Users(db.Model):
         result = []
 
         for user in all_list:
-            result.append(user.to_json())
+            data = user.to_json()
+            result.append({
+                'key': data.get('id'),
+                'id': data.get('id'),
+                'username': data.get('username'),
+                'permission': data.get('permission'),
+                'moment': data.get('moment'),
+                'email': data.get('email'),
+                'status': data.get('status')
+            })
         return result
 
     def add(self, user):

@@ -51,7 +51,7 @@ class Auth:
 
 def identify(func):
     @wraps(func)
-    def decorate():
+    def decorate(*args, **kwargs):
         auth_header = request.headers.get('Authorization')
         if auth_header:
             auth_tokenArr = auth_header.split(" ")
@@ -65,8 +65,7 @@ def identify(func):
                     if user is None:
                         result = common.falseReturn({}, '该用户不存在！')
                     else:
-                        # result = common.trueReturn({}, payload)
-                        return func()
+                        return func(*args, **kwargs)
                 else:
                     result = common.falseReturn('', payload)
         else:
