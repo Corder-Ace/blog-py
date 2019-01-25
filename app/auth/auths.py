@@ -1,4 +1,5 @@
-import jwt, datetime, time, re
+import jwt, datetime, time, re, json
+from app.db import r
 from app.models.user import Users
 from flask import jsonify, request
 from functools import wraps
@@ -7,6 +8,7 @@ from ..common import trueReturn, falseReturn, tokenLoseReturn
 authorizedRoutes = [r'/api/v1/user/get_users', r'^(/api/v1/user/frozen_user/)+[\d]$']
 
 
+# 生成token
 def encode_auth_token(user_id, login_time, permission, status):
         try:
             payload = {
@@ -25,11 +27,13 @@ def encode_auth_token(user_id, login_time, permission, status):
             return e
 
 
+# 解析token并验证
 def decode_auth_token(auth_token):
         try:
             payload = jwt.decode(auth_token, 'ace', options={'verify_exp': False})
             date_now = int(time.time())
-            if 'data' in payload and 'id' in payload['data'] and date_now < payload.get('exp'):
+            user_id = payload['data']['id']
+            if user_id and date_now < payload.get('exp') and auth_token == r.get(user_id).decode():
                 return payload
             else:
                 raise jwt.InvalidTokenError
@@ -39,6 +43,7 @@ def decode_auth_token(auth_token):
             return 'Token无效'
 
 
+# 验证登录并生成token
 def authenticate(account, password):
         user_info = Users.query.filter_by(account=account).first()
         login_time = int(time.time())
@@ -49,11 +54,14 @@ def authenticate(account, password):
         else:
             if Users.check_password(Users, user_info.password, password):
                 token = encode_auth_token(user_info.id, login_time, user_info.permission, user_info.status)
-                return jsonify(trueReturn(token.decode(), '登陆成功!'))
+                access_token = token.decode()
+                r.set(user_info.id, access_token, ex=60 * 60 * 24 * 15)
+                return jsonify(trueReturn(access_token, '登陆成功!'))
             else:
                 return jsonify(falseReturn({}, '账号或密码不正确!'))
 
 
+# 验证是否有权限访问该接口
 def check_auth_path(permission, url, status):
     if not status:
         return False
