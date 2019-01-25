@@ -68,9 +68,9 @@ def check_auth_path(permission, url, status):
 def identify(func):
     @wraps(func)
     def decorate(*args, **kwargs):
-        auth_header = request.headers.get('Authorization')
-        if auth_header:
-            auth_token_arr = auth_header.split(" ")
+        access_token = request.headers.get('Authorization')
+        if access_token:
+            auth_token_arr = access_token.split(" ")
             if not auth_token_arr or auth_token_arr[0] != 'JWT' or len(auth_token_arr) != 2:
                 result = tokenLoseReturn(' ', '请传递正确的验证信息')
             else:

@@ -5,6 +5,7 @@ from ..common import trueReturn, falseReturn, check_user
 users = Blueprint('users', __name__)
 
 
+# 登陆
 @users.route('/login', methods=['POST'])
 def login():
     login_info = request.get_json()
@@ -13,6 +14,7 @@ def login():
     return Auth.authenticate(Auth, account, password)
 
 
+# 获取全部用户信息
 @users.route('/get_users', methods=['GET'])
 @identify
 def select_all_user():
@@ -20,6 +22,7 @@ def select_all_user():
     return jsonify(trueReturn(result, '获取成功!'))
 
 
+# 添加用户
 @users.route('/add', methods=['POST'])
 @identify
 def add_user():
@@ -45,6 +48,23 @@ def add_user():
     return jsonify(falseReturn({}, '该用户已存在!'))
 
 
+# 获取指定用户信息
+@users.route('/get_user/<user_id>', methods=['GET'])
+@identify
+def get_user_by_id(user_id):
+    user = Users.get(Users, user_id)
+    if not user:
+        return jsonify(falseReturn({}, '该用户不存在!'))
+    result = {
+        'id': user.id,
+        'username': user.username,
+        'email': user.email,
+        'permission': user.permission
+    }
+    return jsonify(trueReturn(result, '获取成功!'))
+
+
+# 切换用户状态
 @users.route('/frozen_user/<user_id>', methods=['GET'])
 @identify
 def frozen_user(user_id):
@@ -55,4 +75,39 @@ def frozen_user(user_id):
     except Exception as Error:
         if Error:
             return jsonify(falseReturn({}, '切换状态失败!'))
+    return select_all_user()
+
+
+# 更新用户信息
+@users.route('/update_user', methods=['POST'])
+@identify
+def update_user():
+    update_info = request.get_json()
+    user = Users.get(Users, update_info.get('id'))
+    if not user:
+        return jsonify(falseReturn({}, '该用户不存在'))
+    try:
+        user.username = update_info.get('username', user.username)
+        user.password = update_info.get('new_password', user.password)
+        user.email = update_info.get('email', user.email)
+        user.permission = update_info.get('permission', user.permission)
+        Users.update(Users)
+    except Exception as e:
+        if e:
+            return jsonify(falseReturn({}, '修改信息失败, 请稍后再试!'))
+    return select_all_user()
+
+
+# 删除指定用户
+@users.route('/remove_user/<user_id>', methods=['GET'])
+@identify
+def remove_user(user_id):
+    user = Users.get(Users, user_id)
+    if not user:
+        return jsonify(falseReturn({}, '该用户不存在!'))
+    try:
+        Users.delete(Users, user_id)
+    except Exception as e:
+        if e:
+            return jsonify(falseReturn({}, '删除用户失败,请稍后再试!'))
     return select_all_user()
