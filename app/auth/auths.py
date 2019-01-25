@@ -39,15 +39,15 @@ class Auth:
             return 'Token无效'
 
     def authenticate(self, account, password):
-        userinfo = Users.query.filter_by(account=account).first()
+        user_info = Users.query.filter_by(account=account).first()
         login_time = int(time.time())
-        if userinfo is None:
+        if not user_info:
             return jsonify(common.falseReturn({}, '该用户不存在'))
-        elif not userinfo.status:
+        elif not user_info.status:
             return jsonify(common.falseReturn({}, '该账户已被冻结，请联系管理员!'))
         else:
-            if Users.check_password(Users, userinfo.password, password):
-                token = self.encode_auth_token(userinfo.id, login_time, userinfo.permission, userinfo.status)
+            if Users.check_password(Users, user_info.password, password):
+                token = self.encode_auth_token(user_info.id, login_time, user_info.permission, user_info.status)
                 return jsonify(common.trueReturn(token.decode(), '登陆成功！'))
             else:
                 return jsonify(common.falseReturn({}, '账号或密码不正确'))
