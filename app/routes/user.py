@@ -1,6 +1,6 @@
 from flask import request, Blueprint, jsonify
 from app.models.user import Users
-from app.auth.auths import Auth, identify
+from app.auth.auths import authenticate, identify, get_user_id
 from ..common import trueReturn, falseReturn, check_user
 users = Blueprint('users', __name__)
 
@@ -11,14 +11,14 @@ def login():
     login_info = request.get_json()
     account = login_info.get('account')
     password = login_info.get('password')
-    return Auth.authenticate(Auth, account, password)
+    return authenticate(account, password)
 
 
 # 获取全部用户信息
 @users.route('/get_users', methods=['GET'])
 @identify
 def select_all_user():
-    result = Users.get_all(Users)
+    result = Users.get_all(Users, get_user_id())
     return jsonify(trueReturn(result, '获取成功!'))
 
 
@@ -64,7 +64,7 @@ def get_user_by_id(user_id):
     return jsonify(trueReturn(result, '获取成功!'))
 
 
-# 切换用户状态
+# 切换账号状态
 @users.route('/frozen_user/<user_id>', methods=['GET'])
 @identify
 def frozen_user(user_id):

@@ -43,14 +43,16 @@ class Users(db.Model):
         else:
             return False
 
-    def get(self, id):
-        return self.query.filter_by(id=id).first()
+    def get(self, user_id):
+        return self.query.filter_by(id=user_id).first()
 
-    def get_all(self):
+    def get_all(self, user_id=None):
         all_list = self.query.all()
         result = []
 
         for user in all_list:
+            if user.id == user_id:
+                continue
             data = user.to_json()
             result.append({
                 'key': data.get('id'),
