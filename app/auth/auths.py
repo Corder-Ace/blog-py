@@ -7,7 +7,7 @@ from .. import common
 
 class Auth:
     @staticmethod
-    def encode_auth_token(user_id, login_time, permission):
+    def encode_auth_token(user_id, login_time, permission, status):
         try:
             payload = {
                 'exp': datetime.datetime.utcnow() + datetime.timedelta(days=15),
@@ -16,7 +16,8 @@ class Auth:
                 'data': {
                     'id': user_id,
                     'login_time': login_time,
-                    'permission': permission
+                    'permission': permission,
+                    'status': status
                 }
             }
             return jwt.encode(payload, 'ace', algorithm='HS256')
@@ -46,7 +47,7 @@ class Auth:
             return jsonify(common.falseReturn({}, '该账户已被冻结，请联系管理员!'))
         else:
             if Users.check_password(Users, userinfo.password, password):
-                token = self.encode_auth_token(userinfo.id, login_time, userinfo.permission)
+                token = self.encode_auth_token(userinfo.id, login_time, userinfo.permission, userinfo.status)
                 return jsonify(common.trueReturn(token.decode(), '登陆成功！'))
             else:
                 return jsonify(common.falseReturn({}, '账号或密码不正确'))
@@ -79,7 +80,7 @@ def identify(func):
                     user = Users.get(Users, payload['data']['id'])
                     if user is None:
                         result = common.falseReturn({}, '该用户不存在!')
-                    elif not check_auth_path(payload['data']['permission'], request.path):
+                    elif not check_auth_path(payload['data']['permission'], request.path, payload['data']['status']):
                         result = common.falseReturn({}, '无权限!')
                     else:
                         return func(*args, **kwargs)
