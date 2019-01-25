@@ -2,7 +2,7 @@ import jwt, datetime, time, re
 from app.models.user import Users
 from flask import jsonify, request
 from functools import wraps
-from .. import common
+from ..common import trueReturn, falseReturn, tokenLoseReturn
 
 
 class Auth:
@@ -42,15 +42,15 @@ class Auth:
         user_info = Users.query.filter_by(account=account).first()
         login_time = int(time.time())
         if not user_info:
-            return jsonify(common.falseReturn({}, '该用户不存在'))
+            return jsonify(falseReturn({}, '该用户不存在'))
         elif not user_info.status:
-            return jsonify(common.falseReturn({}, '该账户已被冻结，请联系管理员!'))
+            return jsonify(falseReturn({}, '该账户已被冻结，请联系管理员!'))
         else:
             if Users.check_password(Users, user_info.password, password):
                 token = self.encode_auth_token(user_info.id, login_time, user_info.permission, user_info.status)
-                return jsonify(common.trueReturn(token.decode(), '登陆成功！'))
+                return jsonify(trueReturn(token.decode(), '登陆成功！'))
             else:
-                return jsonify(common.falseReturn({}, '账号或密码不正确'))
+                return jsonify(falseReturn({}, '账号或密码不正确'))
 
 
 authorizedRoutes = [r'/api/v1/user/get_users', r'^(/api/v1/user/frozen_user/)+[\d]$']
@@ -72,22 +72,22 @@ def identify(func):
         if auth_header:
             auth_token_arr = auth_header.split(" ")
             if not auth_token_arr or auth_token_arr[0] != 'JWT' or len(auth_token_arr) != 2:
-                result = common.tokenLoseReturn(' ', '请传递正确的验证信息')
+                result = tokenLoseReturn(' ', '请传递正确的验证信息')
             else:
                 auth_token = auth_token_arr[1]
                 payload = Auth.decode_auth_token(auth_token)
                 if not isinstance(payload, str):
                     user = Users.get(Users, payload['data']['id'])
                     if user is None:
-                        result = common.falseReturn({}, '该用户不存在!')
+                        result = falseReturn({}, '该用户不存在!')
                     elif not check_auth_path(payload['data']['permission'], request.path, payload['data']['status']):
-                        result = common.falseReturn({}, '无权限!')
+                        result = falseReturn({}, '无权限!')
                     else:
                         return func(*args, **kwargs)
                 else:
-                    result = common.falseReturn('', payload)
+                    result = falseReturn('', payload)
         else:
-            result = common.falseReturn('', '没有提供认证token')
+            result = falseReturn('', '没有提供认证token')
         return jsonify(result)
     return decorate
 

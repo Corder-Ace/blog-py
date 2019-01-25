@@ -1,7 +1,7 @@
 from flask import request, Blueprint, jsonify
 from app.models.user import Users
 from app.auth.auths import Auth, identify
-from .. import common
+from ..common import trueReturn, falseReturn, check_user
 users = Blueprint('users', __name__)
 
 
@@ -17,14 +17,14 @@ def login():
 @identify
 def select_all_user():
     result = Users.get_all(Users)
-    return jsonify(common.trueReturn(result, '获取成功!'))
+    return jsonify(trueReturn(result, '获取成功!'))
 
 
 @users.route('/add', methods=['POST'])
 @identify
 def add_user():
     reg_info = request.get_json()
-    check_info = common.check_user(reg_info)
+    check_info = check_user(reg_info)
     if not isinstance(check_info, bool):
         return check_info
     if not Users.check_survive(Users, reg_info.get('username')):
@@ -33,7 +33,7 @@ def add_user():
             Users.add(Users, user)
         except Exception as e:
             if e:
-                return jsonify(common.falseReturn({}, '创建用户失败，请稍后再试！!'))
+                return jsonify(falseReturn({}, '创建用户失败，请稍后再试!'))
         if user.id:
             user_info = {
                 'id': user.id,
@@ -41,8 +41,8 @@ def add_user():
                 'email': user.email,
                 'permission': user.permission
             }
-            return jsonify(common.trueReturn(user_info, '添加用户成功!'))
-    return jsonify(common.falseReturn({}, '该用户已存在!'))
+            return jsonify(trueReturn(user_info, '添加用户成功!'))
+    return jsonify(falseReturn({}, '该用户已存在!'))
 
 
 @users.route('/frozen_user/<user_id>', methods=['GET'])
@@ -54,5 +54,5 @@ def frozen_user(user_id):
         Users.update(Users)
     except Exception as Error:
         if Error:
-            return jsonify(common.falseReturn({}, '切换状态失败!'))
+            return jsonify(falseReturn({}, '切换状态失败!'))
     return select_all_user()

@@ -1,6 +1,7 @@
 import re
 from flask import jsonify
 
+
 def isEmail(email):
     str = r'^[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+){0,4}@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+){0,4}$'
     return re.match(str, email)
@@ -13,6 +14,7 @@ def trueReturn(data, msg):
         "msg": msg
     }
 
+
 def falseReturn(data, msg):
     return {
         "status": 403,
@@ -20,12 +22,14 @@ def falseReturn(data, msg):
         "msg": msg
     }
 
+
 def tokenLoseReturn(data, msg):
     return {
         "status": 401,
         "result": data,
         "msg": msg
     }
+
 
 def check_user(users):
     if 'username' not in users or not users.get('username').strip():
