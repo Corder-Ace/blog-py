@@ -42,6 +42,8 @@ class Auth:
         login_time = int(time.time())
         if userinfo is None:
             return jsonify(common.falseReturn({}, '该用户不存在'))
+        elif not userinfo.status:
+            return jsonify(common.falseReturn({}, '该账户已被冻结，请联系管理员!'))
         else:
             if Users.check_password(Users, userinfo.password, password):
                 token = self.encode_auth_token(userinfo.id, login_time, userinfo.permission)
@@ -53,7 +55,9 @@ class Auth:
 authorizedRoutes = [r'/api/v1/user/get_users', r'^(/api/v1/user/frozen_user/)+[\d]$']
 
 
-def check_auth_path(permission, url):
+def check_auth_path(permission, url, status):
+    if not status:
+        return False
     for reg in authorizedRoutes:
         if re.match(reg, url) and permission != 'admin':
             return False
