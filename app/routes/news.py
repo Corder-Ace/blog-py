@@ -1,6 +1,6 @@
 import json
+from app.models.news import News
 from flask import request, Blueprint
-from app.db.news import create_news
 news = Blueprint('news', __name__)
 
 
@@ -15,7 +15,8 @@ def get_all_news():
 def create():
     news_info = request.get_json()
     try:
-        create_news(news_info)
+        new_news = News(news_info)
+        News.add(News, new_news)
     except Exception as Error:
         if Error:
             print(Error)

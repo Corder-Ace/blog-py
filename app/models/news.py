@@ -1,4 +1,4 @@
-from app.db import db
+from app.db import db, session_commit
 import datetime
 
 
@@ -22,8 +22,14 @@ class News(db.Model):
         self.publish_time = news.get('publish_time', datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         self.status = news.get('status', "1")
 
+    def add(self, news):
+        db.session.add(news)
+        session_commit()
+
     def to_json(self):
         dict = self.__dict__
         if "_sa_instance_state" in dict:
             del dict["_sa_instance_state"]
         return dict
+
+
