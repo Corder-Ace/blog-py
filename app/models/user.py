@@ -72,8 +72,8 @@ class Users(db.Model):
     def update(self):
         return session_commit()
 
-    def delete(self, id):
-        self.query.filter_by(id=id).delete()
+    def delete(self, user_id):
+        self.query.filter_by(id=user_id).delete()
         return session_commit()
 
     def to_json(self):
