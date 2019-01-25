@@ -43,15 +43,15 @@ def authenticate(account, password):
         user_info = Users.query.filter_by(account=account).first()
         login_time = int(time.time())
         if not user_info:
-            return jsonify(falseReturn({}, '该用户不存在'))
+            return jsonify(falseReturn({}, '该用户不存在!'))
         elif not user_info.status:
             return jsonify(falseReturn({}, '该账户已被冻结，请联系管理员!'))
         else:
             if Users.check_password(Users, user_info.password, password):
                 token = encode_auth_token(user_info.id, login_time, user_info.permission, user_info.status)
-                return jsonify(trueReturn(token.decode(), '登陆成功！'))
+                return jsonify(trueReturn(token.decode(), '登陆成功!'))
             else:
-                return jsonify(falseReturn({}, '账号或密码不正确'))
+                return jsonify(falseReturn({}, '账号或密码不正确!'))
 
 
 def check_auth_path(permission, url, status):
