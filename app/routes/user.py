@@ -17,11 +17,7 @@ def login():
 @identify
 def select_all_user():
     result = Users.get_all(Users)
-    data = {
-        'result': result,
-        'status': 200
-    }
-    return jsonify(common.trueReturn(data, '获取成功!'))
+    return jsonify(common.trueReturn(result, '获取成功!'))
 
 
 @users.route('/add', methods=['POST'])

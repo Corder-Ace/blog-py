@@ -1,4 +1,4 @@
-import jwt, datetime, time
+import jwt, datetime, time, re
 from app.models.user import Users
 from flask import jsonify, request
 from functools import wraps
@@ -7,7 +7,7 @@ from .. import common
 
 class Auth:
     @staticmethod
-    def encode_auth_token(user_id, login_time):
+    def encode_auth_token(user_id, login_time, permission):
         try:
             payload = {
                 'exp': datetime.datetime.utcnow() + datetime.timedelta(days=15),
@@ -15,7 +15,8 @@ class Auth:
                 'iss': 'ace',
                 'data': {
                     'id': user_id,
-                    'login_time': login_time
+                    'login_time': login_time,
+                    'permission': permission
                 }
             }
             return jwt.encode(payload, 'ace', algorithm='HS256')
@@ -43,10 +44,20 @@ class Auth:
             return jsonify(common.falseReturn({}, '该用户不存在'))
         else:
             if Users.check_password(Users, userinfo.password, password):
-                token = self.encode_auth_token(userinfo.id, login_time)
+                token = self.encode_auth_token(userinfo.id, login_time, userinfo.permission)
                 return jsonify(common.trueReturn(token.decode(), '登陆成功！'))
             else:
                 return jsonify(common.falseReturn({}, '账号或密码不正确'))
+
+
+authorizedRoutes = [r'/api/v1/user/get_users', r'^(/api/v1/user/frozen_user/)+[\d]$']
+
+
+def check_auth_path(permission, url):
+    for reg in authorizedRoutes:
+        if re.match(reg, url) and permission != 'admin':
+            return False
+    return True
 
 
 def identify(func):
@@ -54,16 +65,18 @@ def identify(func):
     def decorate(*args, **kwargs):
         auth_header = request.headers.get('Authorization')
         if auth_header:
-            auth_tokenArr = auth_header.split(" ")
-            if not auth_tokenArr or auth_tokenArr[0] != 'JWT' or len(auth_tokenArr) != 2:
+            auth_token_arr = auth_header.split(" ")
+            if not auth_token_arr or auth_token_arr[0] != 'JWT' or len(auth_token_arr) != 2:
                 result = common.tokenLoseReturn(' ', '请传递正确的验证信息')
             else:
-                auth_token = auth_tokenArr[1]
+                auth_token = auth_token_arr[1]
                 payload = Auth.decode_auth_token(auth_token)
                 if not isinstance(payload, str):
                     user = Users.get(Users, payload['data']['id'])
                     if user is None:
-                        result = common.falseReturn({}, '该用户不存在！')
+                        result = common.falseReturn({}, '该用户不存在!')
+                    elif not check_auth_path(payload['data']['permission'], request.path):
+                        result = common.falseReturn({}, '无权限!')
                     else:
                         return func(*args, **kwargs)
                 else:
