@@ -12,7 +12,7 @@ with app.app_context():
 # 路由注册
 app.register_blueprint(users, url_prefix="/api/v1/user")
 app.register_blueprint(news, url_prefix="/api/v1/news")
-app.register_blueprint(invite, url_prefix="api/v1/invite")
+app.register_blueprint(invite, url_prefix="/api/v1/invite")
 
 if __name__ == '__main__':
     app.run(host='localhost', port=4000)
