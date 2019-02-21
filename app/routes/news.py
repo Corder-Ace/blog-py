@@ -1,5 +1,6 @@
 import json
 from app.models.news import News
+from app.auth.auths import identify, get_user_id
 from flask import request, Blueprint
 news = Blueprint('news', __name__)
 
@@ -15,6 +16,7 @@ def get_all_news():
 def create():
     news_info = request.get_json()
     try:
+        news_info['auth_id'] = get_user_id()
         new_news = News(news_info)
         News.add(News, new_news)
     except Exception as Error:
