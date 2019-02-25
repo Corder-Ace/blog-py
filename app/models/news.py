@@ -10,8 +10,8 @@ class News(db.Model):
     author = db.relationship('Users', backref=db.backref('news'), uselist=False)
     title = db.Column(db.VARCHAR(255), nullable=False)
     desc = db.Column(db.VARCHAR(255), nullable=False)
-    icon = db.Column(db.VARCHAR(255), nullable=False)
-    content = db.Column(db.VARCHAR(255), nullable=False)
+    icon = db.Column(db.VARCHAR(255))
+    content = db.Column(db.Text(65535), nullable=False)
     publish_time = db.Column(db.VARCHAR(255), nullable=False)
     category = db.Column(db.Enum('origin', 'outside'), nullable=False)
     status = db.Column(db.Enum('0', '1', '2'), nullable=False)
@@ -20,22 +20,34 @@ class News(db.Model):
         self.title = news.get('title')
         self.desc = news.get('desc')
         self.auth_id = news.get('auth_id')
-        self.icon = news.get('icon')
+        self.icon = news.get('icon', '111')
         self.content = news.get('content')
         self.publish_time = news.get('publish_time', datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         self.category = news.get('category')
         self.status = news.get('status', "1")
 
-    def get_news(self, user_id, permission):
-        if permission:
-            all_news = self.query.all()
-        else:
-            all_news = self.query.filter_by(auth_id=user_id)
+    def get_news(self):
+        # if permission:
+        all_news = self.query.all()
+        # else:
+        #     all_news = self.query.filter_by(auth_id=user_id)
 
         result = []
         for news in all_news:
-            result.append(news.to_json())
+            item = news.to_json()
+            result.append({
+                'id': item.get('id'),
+                'title': item.get('title'),
+                'desc': item.get('desc'),
+                'category': item.get('category'),
+                'publish_time': item.get('publish_time')
+            })
         return result
+
+    def get_news_by_id(self, news_id):
+        result = self.query.filter_by(id=news_id).first()
+        return result
+
 
     def add(self, news):
         db.session.add(news)

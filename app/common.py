@@ -1,5 +1,10 @@
 import re
+import base64
 from flask import jsonify
+
+
+def transformImageToBase64(img):
+    return base64.b64encode(img)
 
 
 def isEmail(email):
