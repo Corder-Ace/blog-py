@@ -20,7 +20,7 @@ class News(db.Model):
         self.title = news.get('title')
         self.desc = news.get('desc')
         self.auth_id = news.get('auth_id')
-        self.icon = news.get('icon', '111')
+        self.icon = news.get('icon', ' ')
         self.content = news.get('content')
         self.publish_time = news.get('publish_time', datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         self.category = news.get('category')

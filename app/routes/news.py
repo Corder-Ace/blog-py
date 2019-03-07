@@ -1,4 +1,4 @@
-import time, os
+import time, os, json
 from app.models.news import News
 from app.auth.auths import identify, get_user_id
 from flask import request, Blueprint, jsonify
@@ -14,11 +14,12 @@ def save_images():
     file_count = len(files)
     paths = []
     if not file_count:
-        return jsonify(falseReturn({}, '存储失败，图片为空'))
+        # time.sleep(2)
+        return jsonify(trueReturn({}, '存储失败，图片为空'))
     for index in range(file_count):
         image_name = '{}{}'.format(image_prefix, index)
         blob = files.get(image_name).read()
-        path_name = '{}/{}_{}.png'.format(root, image_name, time.time())
+        path_name = '{}/{}.png'.format(root, time.time())
         paths.append(path_name)
         with open(path_name, 'wb') as image:
             image.write(blob)
@@ -28,7 +29,17 @@ def save_images():
 @news.route('/get_news/<news_id>', methods=['GET'])
 def get_news(news_id):
     result = News.get_news_by_id(News, news_id)
-    return jsonify(trueReturn(result.to_json(), '获取成功！'))
+    author = result.author
+    json = {
+        "id": result.id,
+        "author": author.username,
+        "title": result.title,
+        "content": eval(result.content),
+        "publish_time": result.publish_time,
+        "category": result.category
+    }
+    return jsonify(trueReturn(json, '获取成功！'))
+
 
 @news.route('/get_all_news', methods=['GET'])
 def get_all_news():
@@ -42,14 +53,16 @@ def get_all_news():
 
 
 @news.route('/create_news', methods=['POST'])
+@identify
 def create():
-    print(request.form.get('category'))
-    print(len(request.files))
-    file = request.files.get('images_0').read()
-    with open('/Users/ace/Desktop/blog-py/app/images/images_0.png', 'wb') as image:
-        image.write(file)
-    news_info = request.get_json()
-
+    form_data = request.form
+    news_info = {
+        "title": form_data.get('title'),
+        "content": form_data.get('content'),
+        "category": form_data.get('category'),
+        "desc": form_data.get('desc')
+    }
+    # icon = request.files.get('icon')
     try:
         news_info['auth_id'] = get_user_id()
         new_news = News(news_info)
