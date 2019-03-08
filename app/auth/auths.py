@@ -1,5 +1,5 @@
 import jwt, datetime, time, re, json
-from app.db import r
+# from app.db import r
 from app.models.user import Users
 from flask import jsonify, request
 from functools import wraps
@@ -33,7 +33,8 @@ def decode_auth_token(auth_token):
             payload = jwt.decode(auth_token, 'ace', options={'verify_exp': False})
             date_now = int(time.time())
             user_id = payload['data']['id']
-            if user_id and date_now < payload.get('exp') and auth_token == r.get(user_id).decode():
+            # and auth_token == r.get(user_id).decode()
+            if user_id and date_now < payload.get('exp'):
                 return payload
             else:
                 raise jwt.InvalidTokenError
@@ -55,7 +56,7 @@ def authenticate(account, password):
             if Users.check_password(Users, user_info.password, password):
                 token = encode_auth_token(user_info.id, login_time, user_info.permission, user_info.status)
                 access_token = token.decode()
-                r.set(user_info.id, access_token, ex=60 * 60 * 24 * 15)
+                # r.set(user_info.id, access_token, ex=60 * 60 * 24 * 15)
                 return jsonify(trueReturn(access_token, '登陆成功!'))
             else:
                 return jsonify(falseReturn({}, '账号或密码不正确!'))

@@ -1,5 +1,5 @@
 from flask import request, Blueprint, jsonify
-from app.db import r
+# from app.db import r
 from app.models.user import Users
 from app.auth.auths import authenticate, identify, get_user_id
 from ..common import trueReturn, falseReturn, check_user
@@ -20,7 +20,7 @@ def login():
 def logout():
     user_id = get_user_id()
     try:
-        r.set(user_id, '')
+        print('123')
     except Exception as e:
         if e:
             return jsonify(falseReturn({}, '登出失败,请稍后再试!'))

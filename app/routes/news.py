@@ -4,7 +4,7 @@ from app.auth.auths import identify, get_user_id
 from flask import request, Blueprint, jsonify
 from ..common import trueReturn, falseReturn, check_user
 news = Blueprint('news', __name__)
-root = '/Users/ace/Desktop/blog-py/app/images'
+root = '/home/moyun/static/images'
 
 
 @news.route('/save_images', methods=['POST'])
@@ -18,9 +18,12 @@ def save_images():
         return jsonify(trueReturn({}, '存储失败，图片为空'))
     for index in range(file_count):
         image_name = '{}{}'.format(image_prefix, index)
-        blob = files.get(image_name).read()
-        path_name = '{}/{}.png'.format(root, time.time())
-        paths.append(path_name)
+        image = files.get(image_name)
+        image_type = image.mimetype.split('/')[1]
+        blob = image.read()
+        create_time = time.time()
+        path_name = '{}/{}.{}'.format(root, create_time, image_type)
+        paths.append('{}.{}'.format(create_time, image_type))
         with open(path_name, 'wb') as image:
             image.write(blob)
     return jsonify(trueReturn(paths, '存储成功'))
@@ -30,15 +33,15 @@ def save_images():
 def get_news(news_id):
     result = News.get_news_by_id(News, news_id)
     author = result.author
-    json = {
+    data = {
         "id": result.id,
         "author": author.username,
         "title": result.title,
-        "content": eval(result.content),
+        "content": str(result.content),
         "publish_time": result.publish_time,
         "category": result.category
     }
-    return jsonify(trueReturn(json, '获取成功！'))
+    return jsonify(trueReturn(data, '获取成功！'))
 
 
 @news.route('/get_all_news', methods=['GET'])
@@ -57,7 +60,7 @@ def get_all_news():
 def create():
     form_data = request.form
     news_info = {
-        "title": form_data.get('title'),
+        "title": str(form_data.get('title')),
         "content": form_data.get('content'),
         "category": form_data.get('category'),
         "desc": form_data.get('desc')

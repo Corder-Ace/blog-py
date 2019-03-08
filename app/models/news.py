@@ -8,8 +8,8 @@ class News(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     auth_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     author = db.relationship('Users', backref=db.backref('news'), uselist=False)
-    title = db.Column(db.VARCHAR(255), nullable=False)
-    desc = db.Column(db.VARCHAR(255), nullable=False)
+    title = db.Column(db.VARCHAR(255), nullable=False, )
+    desc = db.Column(db.VARCHAR(255))
     icon = db.Column(db.VARCHAR(255))
     content = db.Column(db.Text(65535), nullable=False)
     publish_time = db.Column(db.VARCHAR(255), nullable=False)
@@ -29,9 +29,11 @@ class News(db.Model):
     def get_news(self):
         # if permission:
         all_news = self.query.all()
+        print(all_news)
         # else:
         #     all_news = self.query.filter_by(auth_id=user_id)
-
+        if not len(all_news):
+            return []
         result = []
         for news in all_news:
             item = news.to_json()
