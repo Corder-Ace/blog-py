@@ -9,14 +9,13 @@ class Invite(db.Model):
     release_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     release = db.relationship('Users', backref=db.backref('invite'), uselist=False)
     title = db.Column(db.VARCHAR(255), nullable=False)
-    position = db.Column(db.VARCHAR(255), nullable=False)
-    content = db.Column(db.VARCHAR(255), nullable=False)
+    content = db.Column(db.Text(), nullable=False)
     publish_time = db.Column(db.VARCHAR(255), nullable=False)
     status = db.Column(db.Enum('0', '1', '2'), nullable=False)
 
     def __init__(self, invite):
         self.title = invite.get('title')
-        self.release_id = invite.get('release_id')
+        self.release_id = invite.get('release_id', 1)
         self.content = invite.get('content')
         self.publish_time = invite.get('publish_time', datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         self.status = invite.get('status', "1")
