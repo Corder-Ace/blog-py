@@ -24,6 +24,6 @@ def create_invite():
 
 @invite.route('/invites', methods=['GET'])
 def get_invites():
-    result = Invite.get_invites(Invite)
+    result = Invite.get_invites_all(Invite)
 
-    return jsonify(trueReturn({}, '获取成功！'))
+    return jsonify(trueReturn(result, '获取成功！'))
