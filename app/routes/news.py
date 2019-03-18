@@ -108,9 +108,13 @@ def delete_news_by_id(news_id):
 def update_news_by_id():
     news_info = request.form
     update_news = News.get_news_by_id(News, news_info.get('news_id'))
+    if not news_info:
+        return jsonify(falseReturn({}, '更新数据不能为空！'))
     try:
         # 先把原来存储的图片删了
-        remove_images(update_news.path)
+        old_paths = update_news.path.split(',')
+        if old_paths:
+            remove_images(old_paths)
         update_news.title = news_info.get('title', update_news.title)
         update_news.content = news_info.get('content', update_news.content)
         update_news.path = news_info.get('path', update_news.path)
@@ -118,5 +122,5 @@ def update_news_by_id():
         News.update(News)
     except Exception as Error:
         print(Error)
-        return jsonify(falseReturn({}, '更新失败'))
+        return jsonify(falseReturn({}, '更新失败！'))
     return jsonify(trueReturn({}, '更新成功！'))
