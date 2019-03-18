@@ -58,6 +58,7 @@ def get_all_news():
             return jsonify(falseReturn({}, '获取失败！'))
 
 
+# 创建文章
 @news.route('/create_news', methods=['POST'])
 @identify
 def create():
@@ -66,11 +67,12 @@ def create():
         "title": str(form_data.get('title')),
         "content": form_data.get('content'),
         "category": form_data.get('category'),
-        "desc": form_data.get('desc')
+        "desc": form_data.get('desc'),
+        "paths": form_data.get('paths')
     }
     # icon = request.files.get('icon')
     try:
-        news_info['auth_id'] = get_user_id()
+        news_info['auth_id'] = get_user_info().get('id')
         new_news = News(news_info)
         News.add(News, new_news)
     except Exception as Error:
@@ -81,3 +83,20 @@ def create():
     return jsonify(trueReturn({}, '创建成功！'))
 
 
+# 删除文章
+@news.route('/delete_news/<news_id>', methods=['DELETE'])
+@identify
+def delete_news_by_id(news_id):
+    try:
+        delete_news = News.get_news_by_id(News, news_id)
+        if not delete_news:
+            return jsonify(falseReturn({}, '该新闻不存在！'))
+        paths = delete_news.path.split(',')
+        if len(paths):
+            for path in paths:
+                os.remove('{}/{}'.format(root, path))
+        News.delete(News, news_id)
+    except Exception as Error:
+        print(Error)
+        return jsonify(falseReturn({}, '删除失败，请稍后再试！'))
+    return jsonify(trueReturn({}, '删除成功！'))
