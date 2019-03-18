@@ -72,13 +72,15 @@ class News(db.Model):
         result = self.query.filter_by(id=news_id).first()
         return result
 
-
     def add(self, news):
         db.session.add(news)
         session_commit()
 
     def delete(self, news_id):
         self.query.filter_by(id=news_id).delete()
+        return session_commit()
+
+    def update(self):
         return session_commit()
 
     def to_json(self):

@@ -1,5 +1,4 @@
-import re
-import base64
+import re, os, base64
 from flask import jsonify
 
 
@@ -35,6 +34,17 @@ def tokenLoseReturn(data, msg):
         "msg": msg
     }
 
+
+def remove_images(paths):
+    if not paths:
+        return paths
+    if isinstance(paths, list) and len(paths) > 0:
+        for path in paths:
+            os.remove(path)
+    if isinstance(paths, str):
+        os.remove(paths)
+    else:
+        return paths
 
 def check_user(users):
     if 'username' not in users or not users.get('username').strip():

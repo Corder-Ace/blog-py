@@ -2,7 +2,7 @@ import time, os, json
 from app.models.news import News
 from app.auth.auths import identify, get_user_info
 from flask import request, Blueprint, jsonify
-from ..common import trueReturn, falseReturn, check_user
+from ..common import trueReturn, falseReturn, check_user, remove_images
 news = Blueprint('news', __name__)
 root = '/home/moyun/static/images'
 
@@ -100,3 +100,23 @@ def delete_news_by_id(news_id):
         print(Error)
         return jsonify(falseReturn({}, '删除失败，请稍后再试！'))
     return jsonify(trueReturn({}, '删除成功！'))
+
+
+# 更新文章
+@news.route('/update', methods=['POST'])
+@identify
+def update_news_by_id():
+    news_info = request.form
+    update_news = News.get_news_by_id(News, news_info.get('news_id'))
+    try:
+        # 先把原来存储的图片删了
+        remove_images(update_news.path)
+        update_news.title = news_info.get('title', update_news.title)
+        update_news.content = news_info.get('content', update_news.content)
+        update_news.path = news_info.get('path', update_news.path)
+        update_news.desc = news_info.get('desc', update_news.desc)
+        News.update(News)
+    except Exception as Error:
+        print(Error)
+        return jsonify(falseReturn({}, '更新失败'))
+    return jsonify(trueReturn({}, '更新成功！'))
