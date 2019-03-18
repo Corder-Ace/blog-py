@@ -1,12 +1,13 @@
 import time, os, json
 from app.models.news import News
-from app.auth.auths import identify, get_user_id
+from app.auth.auths import identify, get_user_info
 from flask import request, Blueprint, jsonify
 from ..common import trueReturn, falseReturn, check_user
 news = Blueprint('news', __name__)
 root = '/home/moyun/static/images'
 
 
+# 存储图片，返回存储路径
 @news.route('/save_images', methods=['POST'])
 def save_images():
     image_prefix = '{}_'.format(request.form.get('file_name'))
@@ -14,8 +15,7 @@ def save_images():
     file_count = len(files)
     paths = []
     if not file_count:
-        # time.sleep(2)
-        return jsonify(trueReturn({}, '存储失败，图片为空'))
+        return jsonify(trueReturn({}, '存储失败，图片为空！'))
     for index in range(file_count):
         image_name = '{}{}'.format(image_prefix, index)
         image = files.get(image_name)
@@ -29,6 +29,7 @@ def save_images():
     return jsonify(trueReturn(paths, '存储成功'))
 
 
+# 获取指定文章内容
 @news.route('/get_news/<news_id>', methods=['GET'])
 def get_news(news_id):
     result = News.get_news_by_id(News, news_id)
@@ -44,15 +45,17 @@ def get_news(news_id):
     return jsonify(trueReturn(data, '获取成功！'))
 
 
+# 获取所有文章
 @news.route('/get_all_news', methods=['GET'])
 def get_all_news():
     try:
-        result = News.get_news(News)
+        # 获取所有的新闻
+        result = News.get_all_news(News)
         return jsonify(trueReturn(result, '获取成功！'))
     except Exception as Error:
         if Error:
             print(Error)
-            return jsonify(falseReturn({}, '获取失败'))
+            return jsonify(falseReturn({}, '获取失败！'))
 
 
 @news.route('/create_news', methods=['POST'])

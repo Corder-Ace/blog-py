@@ -15,7 +15,7 @@ class Users(db.Model):
     avatar = db.Column(db.VARCHAR(255))
     email = db.Column(db.VARCHAR(255), nullable=False)
     moment = db.Column(db.VARCHAR(255), nullable=False)
-    status = db.Column(db.Integer, nullable=False)
+    status = db.Column(db.Enum('0', '1', '2'), nullable=False)
 
     def __init__(self, user):
         self.username = user.get('username')
@@ -30,13 +30,16 @@ class Users(db.Model):
     def __str__(self):
         return "Users(id='%s')" % self.id
 
+    # 密码加密
     def set_password(self, password):
         return generate_password_hash(password)
 
+    # 检查密码
     def check_password(self, hash, password):
         # return check_password_hash(hash, password)
         return True
 
+    # 检查账户是否存在
     def check_survive(self, username):
         if self.query.filter_by(username=username).first():
             return True
@@ -46,23 +49,25 @@ class Users(db.Model):
     def get(self, user_id):
         return self.query.filter_by(id=user_id).first()
 
-    def get_all(self, user_id=None):
-        all_list = self.query.all()
+    def get_all(self, permission, user_id):
         result = []
-
-        for user in all_list:
-            if user.id == user_id:
-                continue
-            data = user.to_json()
-            result.append({
-                'key': data.get('id'),
-                'id': data.get('id'),
-                'username': data.get('username'),
-                'permission': data.get('permission'),
-                'moment': data.get('moment'),
-                'email': data.get('email'),
-                'status': data.get('status')
-            })
+        if permission == 'admin':
+            all_users = self.query.all()
+            for user in all_users:
+                # 过滤自己
+                if user.id != user_id:
+                    data = user.to_json()
+                    result.append({
+                        'key': data.get('id'),
+                        'id': data.get('id'),
+                        'username': data.get('username'),
+                        'permission': data.get('permission'),
+                        'moment': data.get('moment'),
+                        'email': data.get('email'),
+                        'status': data.get('status')
+                    })
+        else:
+            result = []
         return result
 
     def add(self, user):

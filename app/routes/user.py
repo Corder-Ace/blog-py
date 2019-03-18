@@ -1,7 +1,7 @@
 from flask import request, Blueprint, jsonify
 # from app.db import r
 from app.models.user import Users
-from app.auth.auths import authenticate, identify, get_user_id
+from app.auth.auths import authenticate, identify, get_user_info
 from ..common import trueReturn, falseReturn, check_user
 users = Blueprint('users', __name__)
 
@@ -10,6 +10,13 @@ users = Blueprint('users', __name__)
 @users.route('/login', methods=['POST'])
 def login():
     login_info = request.get_json()
+    if 'account' not in login_info:
+        return jsonify(falseReturn({}, '用户名不能为空！'))
+
+    if 'password' not in login_info:
+        return jsonify(falseReturn({}, '密码不能为空！'))
+
+    # authenticate 包含了密码验证
     account = login_info.get('account')
     password = login_info.get('password')
     return authenticate(account, password)
@@ -18,12 +25,12 @@ def login():
 # 登出
 @users.route('/logout', methods=['GET'])
 def logout():
-    user_id = get_user_id()
-    try:
-        print('123')
-    except Exception as e:
-        if e:
-            return jsonify(falseReturn({}, '登出失败,请稍后再试!'))
+    user_id = get_user_info()
+    # try:
+    #     do something 这里应该清空redis和cookie
+    # except Exception as e:
+    #     if e:
+    #         return jsonify(falseReturn({}, '登出失败,请稍后再试!'))
     return jsonify(trueReturn({}, '登出成功!'))
 
 
@@ -31,7 +38,12 @@ def logout():
 @users.route('/get_users', methods=['GET'])
 @identify
 def select_all_user():
-    result = Users.get_all(Users, get_user_id())
+    try:
+        user_info = get_user_info()
+        result = Users.get_all(Users, user_info.get('permission'), user_info.get('id'))
+    except Exception as Error:
+        print(Error)
+        return jsonify(falseReturn({}, '查询失败，请稍后再试！'))
     return jsonify(trueReturn(result, '获取成功!'))
 
 
@@ -40,6 +52,7 @@ def select_all_user():
 @identify
 def add_user():
     reg_info = request.get_json()
+    # 数据验证
     check_info = check_user(reg_info)
     if not isinstance(check_info, bool):
         return check_info

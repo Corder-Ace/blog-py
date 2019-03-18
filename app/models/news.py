@@ -1,4 +1,5 @@
 from app.db import db, session_commit
+from app.auth.auths import get_user_info
 import datetime
 
 
@@ -14,7 +15,7 @@ class News(db.Model):
     content = db.Column(db.Text(65535), nullable=False)
     publish_time = db.Column(db.VARCHAR(255), nullable=False)
     category = db.Column(db.Enum('origin', 'outside'), nullable=False)
-    status = db.Column(db.Enum('0', '1', '2'), nullable=False)
+
 
     def __init__(self, news):
         self.title = news.get('title')
@@ -27,15 +28,33 @@ class News(db.Model):
         self.status = news.get('status', "1")
 
     def get_news(self):
-        # if permission:
-        all_news = self.query.all()
-        print(all_news)
-        # else:
-        #     all_news = self.query.filter_by(auth_id=user_id)
+        all_news = None
+        result = []
+        user_info = get_user_info()
+        user_id = user_info.get('id')
+        user_permission = user_info.get('permission')
+        if user_permission != 'admin':
+            all_news = self.query.filter_by(auth_id=user_id)
+        else:
+            all_news = self.get_all_news(self)
+
         if not len(all_news):
             return []
-        result = []
         for news in all_news:
+            item = news.to_json()
+            result.append({
+                'id': item.get('id'),
+                'title': item.get('title'),
+                'desc': item.get('desc'),
+                'category': item.get('category'),
+                'publish_time': item.get('publish_time')
+            })
+        return result
+
+    def get_all_news(self):
+        result = []
+        all_news_list = self.query.all()
+        for news in all_news_list:
             item = news.to_json()
             result.append({
                 'id': item.get('id'),

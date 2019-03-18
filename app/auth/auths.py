@@ -5,6 +5,7 @@ from flask import jsonify, request
 from functools import wraps
 from ..common import trueReturn, falseReturn, tokenLoseReturn
 
+# 接口地址白名单，用于权限验证
 authorizedRoutes = [r'/api/v1/user/get_users', r'^(/api/v1/user/frozen_user/)+[\d]$']
 
 
@@ -45,6 +46,7 @@ def decode_auth_token(auth_token):
 
 
 # 验证登录并生成token
+# 视情况引入redis， 测试阶段redis被我注释了
 def authenticate(account, password):
         user_info = Users.query.filter_by(account=account).first()
         login_time = int(time.time())
@@ -72,12 +74,17 @@ def check_auth_path(permission, url, status):
     return True
 
 
-def get_user_id():
-    access_token = request.headers.get('Authorization').split(' ')[1]
+# 根据token获取用户id
+def get_user_info():
+    headers = request.headers
+    if 'Authorization' not in headers:
+        return None
+    access_token = headers.get('Authorization').split(' ')[1]
     payload = decode_auth_token(access_token)
-    return payload['data']['id']
+    return payload['data']
 
 
+# 装饰器 用来包装接口函数
 def identify(func):
     @wraps(func)
     def decorate(*args, **kwargs):
